@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+security_repo_root="$(git rev-parse --show-toplevel)"
+"$security_repo_root/scripts/security-scan-local.sh" --staged --semgrep-only
 
 # Shared pre-commit secret scanner
 # Scans staged content (not just working tree) and blocks on high-confidence secrets.
