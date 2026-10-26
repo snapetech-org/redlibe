@@ -1,3 +1,4 @@
+# ng-runner-policy: private-jit-only-v1
 name: "CodeQL"
 
 on:
@@ -11,7 +12,7 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-analyze"]}}', github.run_id, strategy.job-index)) }}
     permissions:
       actions: read
       contents: read

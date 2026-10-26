@@ -1,3 +1,4 @@
+# ng-runner-policy: private-jit-only-v1
 name: Local Identity Leak Check
 
 on:
@@ -7,7 +8,7 @@ on:
 
 jobs:
   local-identity-leaks:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-local-identity-leaks"]}}', github.run_id)) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
