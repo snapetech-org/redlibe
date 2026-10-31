@@ -1,5 +1,6 @@
 # ng-runner-policy: private-jit-only-v1
 name: release-build
+run-name: ${{ github.event_name == 'push' && format('action:build:pool:private:tag:{0}', github.ref_name) || format('action:{0}:pool:{1}', inputs.action, inputs.runner_pool) }}
 
 on:
   push:

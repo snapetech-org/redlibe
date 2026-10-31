@@ -1,5 +1,6 @@
 # ng-runner-policy: private-jit-only-v1
 name: tauri-bundle
+run-name: ${{ format('action:bundle:pool:private:tag:{0}', github.ref_name) }}
 
 on:
   push:
