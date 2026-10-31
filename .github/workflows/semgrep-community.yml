@@ -2,10 +2,6 @@
 name: Semgrep Community Edition
 
 on:
-  push:
-  pull_request:
-  schedule:
-    - cron: "41 8 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -19,6 +15,7 @@ concurrency:
 jobs:
   semgrep:
     name: Semgrep CE (community rules)
+    if: github.ref == 'refs/heads/main'
     runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-semgrep"]}}', github.run_id)) }}
     timeout-minutes: 30
     steps:
