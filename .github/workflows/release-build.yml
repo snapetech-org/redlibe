@@ -6,31 +6,50 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      action:
+        description: Required operation
+        type: choice
+        options: [build]
+        required: true
+      runner_pool:
+        description: Required private runner pool
+        type: choice
+        options: [private]
+        required: true
 
 jobs:
   build:
+    if: >-
+      github.repository == 'snapetech-org/redlibe' &&
+      ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' &&
+        inputs.action == 'build' && inputs.runner_pool == 'private'))
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: linux-x64
             artifact_suffix: linux-x86_64
             exe_suffix: ""
-          - os: windows-latest
+          - os: windows-x64
             artifact_suffix: windows-x86_64
             exe_suffix: ".exe"
-          - os: macos-latest
+          - os: macos-x64
             artifact_suffix: macos-x86_64
             exe_suffix: ""
-    runs-on: ${{ matrix.os == 'ubuntu-latest' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-build"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-latest' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","packer-windows","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-build"]}}', github.run_id, strategy.job-index)) || fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","macOS","ARM64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-build"]}}', github.run_id, strategy.job-index)) }}
+    runs-on: >-
+      ${{ matrix.os == 'linux-x64' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-build"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-x64' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","packer-windows","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-build"]}}', github.run_id, strategy.job-index)) || matrix.os == 'macos-x64' && fromJSON(format('{{"group":"private-apple-builds","labels":["self-hosted","macOS","X64","private-apple","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-build"]}}', github.run_id, strategy.job-index)) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: stable
 
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Build release binaries
         run: cargo build --release --bins
@@ -78,7 +97,7 @@ jobs:
           Compress-Archive -Path tauri-dist/* -DestinationPath "redlib-tauri-scaffold-${{ matrix.artifact_suffix }}.zip" -Force
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: redlib-${{ matrix.artifact_suffix }}
           path: |
@@ -86,7 +105,7 @@ jobs:
             redlib-${{ matrix.artifact_suffix }}.zip
 
       - name: Upload Tauri scaffold artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: redlib-tauri-scaffold-${{ matrix.artifact_suffix }}
           path: |

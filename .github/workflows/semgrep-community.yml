@@ -2,11 +2,18 @@
 name: Semgrep Community Edition
 
 on:
-  push:
-  pull_request:
-  schedule:
-    - cron: "41 8 * * 1"
   workflow_dispatch:
+    inputs:
+      action:
+        description: Required operation
+        type: choice
+        options: [scan]
+        required: true
+      runner_pool:
+        description: Required private runner pool
+        type: choice
+        options: [private]
+        required: true
 
 permissions:
   contents: read
@@ -19,6 +26,7 @@ concurrency:
 jobs:
   semgrep:
     name: Semgrep CE (community rules)
+    if: github.ref == 'refs/heads/main' && inputs.action == 'scan' && inputs.runner_pool == 'private'
     runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-semgrep"]}}', github.run_id)) }}
     timeout-minutes: 30
     steps:
