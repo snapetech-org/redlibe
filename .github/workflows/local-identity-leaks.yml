@@ -3,10 +3,21 @@ name: Local Identity Leak Check
 
 on:
   workflow_dispatch:
+    inputs:
+      action:
+        description: Required operation
+        type: choice
+        options: [scan]
+        required: true
+      runner_pool:
+        description: Required private runner pool
+        type: choice
+        options: [private]
+        required: true
 
 jobs:
   local-identity-leaks:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && inputs.action == 'scan' && inputs.runner_pool == 'private'
     runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-local-identity-leaks"]}}', github.run_id)) }}
     steps:
       - name: Checkout

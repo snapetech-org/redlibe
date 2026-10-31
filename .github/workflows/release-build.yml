@@ -6,10 +6,25 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      action:
+        description: Required operation
+        type: choice
+        options: [build]
+        required: true
+      runner_pool:
+        description: Required private runner pool
+        type: choice
+        options: [private]
+        required: true
 
 jobs:
   build:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')))
+    if: >-
+      github.repository == 'snapetech-org/redlibe' &&
+      ((github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' &&
+        inputs.action == 'build' && inputs.runner_pool == 'private'))
     strategy:
       fail-fast: false
       matrix:
