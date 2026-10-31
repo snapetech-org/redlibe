@@ -1,16 +1,33 @@
+# packer-windows-jit-v1
 # ng-runner-policy: private-jit-only-v1
 name: tauri-bundle
-run-name: ${{ format('action:bundle:pool:private:tag:{0}', github.ref_name) }}
+run-name: ${{ format('action:{0}:pool:{1}:tag:{2}', inputs.action, inputs.runner_pool, inputs.release_tag) }}
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Build desktop bundles for an existing source tag
+        type: choice
+        options: [build]
+        required: true
+      runner_pool:
+        description: Required private JIT runner pool
+        type: choice
+        options: [private]
+        required: true
+      release_tag:
+        description: Existing version tag on the default branch
+        type: string
+        required: true
+
+permissions:
+  contents: write
 
 jobs:
   bundle:
     if: >-
-      github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.action == 'build' && inputs.runner_pool == 'private' && inputs.release_tag != ''
     strategy:
       fail-fast: false
       matrix:
@@ -25,9 +42,23 @@ jobs:
             target: x86_64-apple-darwin
             sidecar_ext: ""
     runs-on: >-
-      ${{ matrix.os == 'linux-x64' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-x64' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","packer-windows","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'macos-x64' && fromJSON(format('{{"group":"private-apple-builds","labels":["self-hosted","macOS","X64","private-apple","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) }}
+      ${{ matrix.os == 'linux-x64' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-x64' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","on-demand","packer-windows","redlibe","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'macos-x64' && fromJSON(format('{{"group":"private-apple-builds","labels":["self-hosted","macOS","X64","private-apple","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ inputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify release tag is on main
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          tag_commit="$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")"
+          git merge-base --is-ancestor "$tag_commit" origin/main
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
@@ -93,8 +124,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: desktop/tauri
-          tagName: ${{ github.ref_name }}
-          releaseName: "Redlibe Desktop ${{ github.ref_name }}"
+          tagName: ${{ inputs.release_tag }}
+          releaseName: "Redlibe Desktop ${{ inputs.release_tag }}"
           releaseDraft: true
           prerelease: false
 
@@ -104,10 +135,9 @@ jobs:
           name: tauri-bundle-${{ matrix.target }}
           path: |
             desktop/tauri/src-tauri/target/${{ matrix.target }}/release/bundle/**
-
   announce-matrix:
     name: Announce Desktop Release to Matrix
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.action == 'build' && inputs.runner_pool == 'private' && startsWith(inputs.release_tag, 'v')
     needs:
       - bundle
     runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-announce-matrix"]}}', github.run_id)) }}
@@ -118,8 +148,8 @@ jobs:
           MATRIX_BASE_URL: https://matrix.timeways.net
           MATRIX_ROOM_ID: '!feVqoCPCPPaCQmTCEE:timeways.net'
           MATRIX_PROJECT_KEY: redlibe-desktop
-          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}
-          REF_NAME: ${{ github.ref_name }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ inputs.release_tag }}
+          REF_NAME: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
 

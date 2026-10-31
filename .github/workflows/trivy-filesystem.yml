@@ -1,6 +1,12 @@
 # ng-runner-policy: private-jit-only-v1
 name: Trivy filesystem scan
 
+
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/') &&
+      format('action:{0}:pool:{1}:tag:{2}', inputs.action || 'scan', inputs.runner_pool || 'private', github.ref_name) ||
+      github.event_name == 'workflow_dispatch' &&
+      format('action:{0}:pool:{1}', inputs.action || 'scan', inputs.runner_pool || 'private') || format('action:scan:pool:private') }}
 on:
   workflow_dispatch:
     inputs:
