@@ -13,16 +13,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: linux-x64
             target: x86_64-unknown-linux-gnu
             sidecar_ext: ""
-          - os: windows-latest
+          - os: windows-x64
             target: x86_64-pc-windows-msvc
             sidecar_ext: ".exe"
-          - os: macos-latest
+          - os: macos-x64
             target: x86_64-apple-darwin
             sidecar_ext: ""
-    runs-on: ${{ matrix.os == 'ubuntu-latest' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-latest' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","packer-windows","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","macOS","ARM64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) }}
+    runs-on: >-
+      ${{ matrix.os == 'linux-x64' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-x64' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","packer-windows","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'macos-x64' && fromJSON(format('{{"group":"private-apple-builds","labels":["self-hosted","macOS","X64","private-apple","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) }}
     steps:
       - uses: actions/checkout@v6
 
