@@ -24,7 +24,7 @@ jobs:
             sidecar_ext: ""
     runs-on: ${{ matrix.os == 'ubuntu-latest' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-latest' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","packer-windows","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","macOS","ARM64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
