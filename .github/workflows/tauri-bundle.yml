@@ -109,7 +109,7 @@ jobs:
           Copy-Item "target/${{ matrix.target }}/release/redlib.exe" "desktop/tauri/src-tauri/binaries/redlib-${{ matrix.target }}.exe"
 
       - name: Build Tauri bundle
-        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Optional macOS signing/notarization (see docs/ci-signing-secrets.md)
