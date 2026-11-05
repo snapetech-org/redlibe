@@ -119,7 +119,7 @@ redlib-extended is written in Rust and inherits Redlib's stack:
 
 ### Prerequisites
 
-- Rust 1.81+
+- Rust 1.89+
 - For OAuth login: a Reddit OAuth application ([create one here](https://www.reddit.com/prefs/apps)). Optional if you use [SSH session import](#ssh-session-import) only.
 
 ### Environment Variables

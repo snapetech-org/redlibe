@@ -9,7 +9,7 @@ use aes_gcm::{
 	Aes256Gcm, Nonce,
 };
 use base64::{engine::general_purpose, Engine as _};
-use cbc::cipher::{block_padding::Pkcs7, BlockDecryptMut, KeyIvInit};
+use cbc::cipher::{block_padding::Pkcs7, BlockModeDecrypt, KeyIvInit};
 use pbkdf2::pbkdf2_hmac;
 use rusqlite::Connection;
 use serde_json::Value;
@@ -206,7 +206,7 @@ fn decrypt_legacy_cbc_bytes(enc: &[u8], password: &str, iterations: u32) -> Resu
 	let iv = [b' '; 16];
 	let mut buf = cipher_bytes.to_vec();
 	let decrypted = Aes128CbcDec::new((&key).into(), (&iv).into())
-		.decrypt_padded_mut::<Pkcs7>(&mut buf)
+		.decrypt_padded::<Pkcs7>(&mut buf)
 		.map_err(|_| "AES-CBC decryption failed".to_string())?;
 	Ok(decrypted.to_vec())
 }
@@ -465,4 +465,23 @@ fn chromium_user_data_dir(browser: &str) -> Option<PathBuf> {
 		_ => p.push("google-chrome"),
 	}
 	Some(p)
+}
+
+#[cfg(test)]
+mod cbc_compatibility_tests {
+	use super::decrypt_legacy_cbc_bytes;
+	#[test]
+	fn reads_independent_openssl_chromium_fixture() {
+		// Synthetic PBKDF2-SHA1/space-IV fixture generated independently with OpenSSL.
+		let ciphertext: &[u8] = &[
+			149, 86, 207, 147, 234, 191, 149, 13, 72, 110, 177, 142, 207, 34, 22, 135, 157, 36, 182, 216, 194, 169, 184, 207, 180, 57, 45, 20, 61, 151, 56, 161,
+		];
+		let mut encoded = b"v10".to_vec();
+		encoded.extend_from_slice(ciphertext);
+		assert_eq!(decrypt_legacy_cbc_bytes(&encoded, "fixture-password", 1).unwrap(), b"non-secret chromium fixture");
+	}
+	#[test]
+	fn rejects_malformed_cbc_block_length() {
+		assert!(decrypt_legacy_cbc_bytes(&[0; 15], "fixture-password", 1).is_err());
+	}
 }
