@@ -33,7 +33,7 @@ route-recognizer = "0.3.1"
 serde_json = "1.0.133"
 tokio = { version = "1.44.2", features = ["full"] }
 time = { version = "0.3.31", features = ["local-offset"] }
-url = "2.5.0"
+url = "2.5.8"
 rust-embed = { version = "8.1.0", features = ["include-exclude"] }
 libflate = "2.0.0"
 brotli = { version = "7.0.0", features = ["std"] }
