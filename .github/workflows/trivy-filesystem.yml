@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Install the latest Trivy release
-        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241 # latest
+        uses: aquasecurity/setup-trivy@a0e5e8d8f5936915ac0292775f38a64d6fabe7a7 # latest
         with:
           version: latest
           token: ${{ github.token }}
