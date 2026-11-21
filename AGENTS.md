@@ -3,8 +3,8 @@
 All build, test, scan, packaging, and release jobs require compatible private
 ephemeral JIT runners. Preserve native OS and architecture. Do not use hosted
 runners or hosted fallbacks; missing private capacity is a provisioning blocker.
-CodeQL is disabled organization-wide and must not be restored or rerouted unless
-the owner explicitly reverses that directive.
+CodeQL is allowed (owner directive, 2026-11-21); the 2026-10-30 disable is
+withdrawn.
 
 Keep untrusted pull-request code isolated in a disposable environment without
 secrets, with minimal permissions and restricted egress. Do not widen trusted
