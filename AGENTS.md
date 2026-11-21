@@ -10,6 +10,10 @@ runners.
 CodeQL is allowed (owner directive, 2026-11-21); the 2026-10-30 disable is
 withdrawn.
 
+Exception (owner directive, 2026-11-21): the Semgrep and Trivy scan workflows
+run only on private ephemeral JIT runners, never on hosted runners. All other
+build, test, packaging and release jobs use compatible hosted runners.
+
 Keep untrusted pull-request code isolated in a disposable environment without
 secrets, with minimal permissions and restricted egress. Do not widen trusted
 runner-group access to make untrusted code run. Preserve active builds and other
