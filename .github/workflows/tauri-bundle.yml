@@ -1,5 +1,4 @@
-# packer-windows-jit-v1
-# ng-runner-policy: private-jit-only-v1
+# ng-runner-policy: hosted-compatible-v1
 name: tauri-bundle
 run-name: ${{ format('action:{0}:pool:{1}:tag:{2}', inputs.action, inputs.runner_pool, inputs.release_tag) }}
 
@@ -12,9 +11,9 @@ on:
         options: [build]
         required: true
       runner_pool:
-        description: Required private JIT runner pool
+        description: Required hosted runner pool
         type: choice
-        options: [private]
+        options: [public]
         required: true
       release_tag:
         description: Existing version tag on the default branch
@@ -27,7 +26,7 @@ permissions:
 jobs:
   bundle:
     if: >-
-      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.action == 'build' && inputs.runner_pool == 'private' && inputs.release_tag != ''
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.action == 'build' && inputs.runner_pool == 'public' && inputs.release_tag != ''
     strategy:
       fail-fast: false
       matrix:
@@ -42,7 +41,7 @@ jobs:
             target: x86_64-apple-darwin
             sidecar_ext: ""
     runs-on: >-
-      ${{ matrix.os == 'linux-x64' && fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'windows-x64' && fromJSON(format('{{"group":"packer-windows","labels":["self-hosted","Windows","X64","on-demand","packer-windows","redlibe","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) || matrix.os == 'macos-x64' && fromJSON(format('{{"group":"private-apple-builds","labels":["self-hosted","macOS","X64","private-apple","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-{1}-bundle"]}}', github.run_id, strategy.job-index)) }}
+      ${{ matrix.os == 'linux-x64' && 'ubuntu-24.04' || matrix.os == 'windows-x64' && 'windows-2025' || matrix.os == 'macos-x64' && 'macos-15-intel' }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -137,10 +136,10 @@ jobs:
             desktop/tauri/src-tauri/target/${{ matrix.target }}/release/bundle/**
   announce-matrix:
     name: Announce Desktop Release to Matrix
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.action == 'build' && inputs.runner_pool == 'private' && startsWith(inputs.release_tag, 'v')
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.action == 'build' && inputs.runner_pool == 'public' && startsWith(inputs.release_tag, 'v')
     needs:
       - bundle
-    runs-on: ${{ fromJSON(format('{{"group":"ng-shared-main-jit","labels":["self-hosted","linux","x64","ng-shared-main-redlibe","ng-main-run-{0}","gha-{0}-announce-matrix"]}}', github.run_id)) }}
+    runs-on: ubuntu-24.04
     steps:
       - name: Post Matrix announcement
         env:
